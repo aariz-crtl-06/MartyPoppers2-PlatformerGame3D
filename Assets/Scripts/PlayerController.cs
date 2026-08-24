@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float turnSpeed = 1f;
     [SerializeField] float gravity = 9.81f;
     [SerializeField] float jumpHeight = 2f;
+    private bool isGliding;
 
     private float verticalVelocity = 0f;
 
@@ -77,8 +78,35 @@ public class PlayerController : MonoBehaviour
         else
         {
             verticalVelocity -= gravity * Time.deltaTime; // Apply gravity when in the air
+
+            if (isGliding)
+            {
+                verticalVelocity = Mathf.Max(verticalVelocity, -1f); // Limit the fall speed when gliding
+            }
+            
         }
         return verticalVelocity;
+    }
+
+    private void UmbrellaGlide()
+    {
+        // If not grounded, and pressing 'E' enable gliding
+        if (!controller.isGrounded)
+        {
+            if (Input.GetButton("Jump"))
+            {
+                isGliding = true;
+            }
+            else
+            {
+                isGliding = false;
+            }
+        }
+
+        else
+        {
+            isGliding = false; // Disable gliding when grounded
+        }
     }
 
     private void Movement()
@@ -92,6 +120,7 @@ public class PlayerController : MonoBehaviour
     {
       controller = GetComponent<CharacterController>();
 
+
       // Lock cursor to center of screen
       Cursor.lockState = CursorLockMode.Locked;
       Cursor.visible = false;
@@ -100,6 +129,8 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         InputManagement();
+        UmbrellaGlide();
         Movement();
+        
     }
 }

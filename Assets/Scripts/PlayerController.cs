@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Rendering;
 
 public class PlayerController : MonoBehaviour
 {
@@ -9,7 +10,12 @@ public class PlayerController : MonoBehaviour
 
     [Header("Movement Settings")]
     [SerializeField] float walkSpeed = 5f;
-    [SerializeField] float turnSpeed = 2f;
+    [SerializeField] float turnSpeed = 1f;
+    [SerializeField] float gravity = 9.81f;
+    [SerializeField] float jumpHeight = 2f;
+
+    private float verticalVelocity = 0f;
+
 
     [Header("References")]
     CharacterController controller;
@@ -29,13 +35,12 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 move = new Vector3(turnInput, 0, moveInput);
 
-        move = transform.TransformDirection(move); // Makes sure player is moving in facing direction
-
-        // Don't allow player to move up vertically
-        move.y = 0;
+        move = playerCamera.transform.TransformDirection(move); // Makes sure player is moving in facing direction
 
         // Apply speed
         move *= walkSpeed;
+
+        move.y = VerticalForceCalculation(); // Apply vertical force (gravity)
 
         // Move the player
         controller.Move(move * Time.deltaTime);
@@ -46,14 +51,34 @@ public class PlayerController : MonoBehaviour
         // Rotate the player to face the direction of movement, only if there is movement input
         if (Mathf.Abs(turnInput) > 0 || Mathf.Abs(moveInput) > 0)
         {
-            Vector3 currentLookAtDirection = playerCamera.forward;
+            Vector3 currentLookAtDirection = controller.velocity.normalized;
             currentLookAtDirection.y = 0; // Keep rotation strictly horizontal
+
+            currentLookAtDirection.Normalize(); // Ensure the direction is normalized
 
             Quaternion lookRotation = Quaternion.LookRotation(currentLookAtDirection);
 
             //Apply turn to character
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, turnSpeed * Time.deltaTime);
         }
+    }
+
+    private float VerticalForceCalculation()
+    {
+       if (controller.isGrounded)
+        {
+            verticalVelocity = -1f; // Apply a small downward force to keep the player grounded
+
+            if (Input.GetButtonDown("Jump"))
+            {
+                verticalVelocity = Mathf.Sqrt(jumpHeight * 2f * gravity); // Calculate jump velocity
+            }
+        }
+        else
+        {
+            verticalVelocity -= gravity * Time.deltaTime; // Apply gravity when in the air
+        }
+        return verticalVelocity;
     }
 
     private void Movement()

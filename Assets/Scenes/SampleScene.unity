@@ -350,8 +350,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.41542685, y: 8.065097e-16, z: -3.683333e-16, w: 0.9096266}
-  m_LocalPosition: {x: 0.65402, y: 7.373529, z: -5.3693647}
+  m_LocalRotation: {x: 0.20378673, y: -0.000000027309586, z: 0.0000000056846208, w: 0.9790153}
+  m_LocalPosition: {x: 0.65402, y: 4.0444975, z: -5.597734}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -703,7 +703,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   walkSpeed: 8
-  turnSpeed: 2
+  turnSpeed: 4
   gravity: 9.81
   jumpHeight: 2
   playerCamera: {fileID: 330585546}
@@ -962,6 +962,7 @@ GameObject:
   m_Component:
   - component: {fileID: 799657246}
   - component: {fileID: 799657247}
+  - component: {fileID: 799657248}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -1007,6 +1008,24 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &799657248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799657245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3512bdab6bffee459332d50a510acef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
+  playerTarget: {fileID: 524767814}
+  chaseRange: 10
+  attackRange: 2
+  retreatDistance: 4
+  damage: 1
+  attackCooldown: 1
 --- !u!1 &802098175
 GameObject:
   m_ObjectHideFlags: 0
@@ -1420,7 +1439,7 @@ Transform:
   m_GameObject: {fileID: 1243115228}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 19.21, y: -2.75, z: 0.5}
+  m_LocalPosition: {x: 19.21, y: -1.12, z: 0.5}
   m_LocalScale: {x: 13.093709, y: 0.21714973, z: 9.74863}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1975,8 +1994,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1729222137}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.41542682, y: 6.284009e-16, z: 2.1657231e-17, w: 0.9096266}
-  m_LocalPosition: {x: 0.65402, y: 7.373529, z: -5.3693647}
+  m_LocalRotation: {x: 0.20378673, y: -0.000000027309582, z: 0.0000000056846203, w: 0.9790153}
+  m_LocalPosition: {x: 0.65402, y: 4.0444975, z: -5.597734}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1994,7 +2013,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b5d7c088409d9a40b7b09aa707777f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineOrbitalFollow
-  TargetOffset: {x: 0, y: 4, z: 0}
+  TargetOffset: {x: 0, y: 2, z: 0}
   TrackerSettings:
     BindingMode: 0
     PositionDamping: {x: 1, y: 1, z: 1}
@@ -2026,7 +2045,7 @@ MonoBehaviour:
       Time: 2
     Restrictions: 0
   VerticalAxis:
-    Value: 17.5
+    Value: 2
     Center: 17.5
     Range: {x: -10, y: 45}
     Wrap: 0

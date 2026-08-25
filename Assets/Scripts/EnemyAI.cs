@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.AI;
-
 public class EnemyAI : MonoBehaviour
 {
     [Header("References")]
@@ -10,32 +9,112 @@ public class EnemyAI : MonoBehaviour
     [Header("Enemy Settings")]
     [SerializeField] float chaseRange = 10f;
     [SerializeField] float attackRange = 2f;
-    [SerializeField] float patrolSpeed = 3.5f;
+    [SerializeField] float retreatDistance = 4f;
+    [SerializeField] float damage = 1f;
+    [SerializeField] float attackCooldown = 1f;
+    float attackTimer = 0f;
     Vector3 destination;
 
+    [Header("Checks")]
+    bool isChasing = false;
+    bool isAttacking = false;
+    bool isRetreating = false;
     private void Patrol()
     {
+        // Only pick a new random point once actually arrived at the current one
+        if (!agent.pathPending && agent.remainingDistance <= 1f)
+        {
+            Vector3 randomOffset = Random.insideUnitSphere * 10f;
 
+            randomOffset.y = 0f; // keep the patrol point on the same horizontal plane
+
+            destination = transform.position + randomOffset; // Set the new destination
+
+            agent.SetDestination(destination);
+        }
+        if (playerTarget != null)
+        {
+            //Compare distance to player with chase range, if within range, set isChasing to true
+            float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
+            if (distanceToPlayer <= chaseRange)
+            {
+                isChasing = true;
+            }
+        }
     }
-
     private void ChasePlayer()
     {
+        // Set the destination to the player's position
+        agent.SetDestination(playerTarget.position);
 
+        //If the distance to the player is < attack range, set attack mode
+        if (Vector3.Distance(transform.position, playerTarget.position) <= attackRange)
+        {
+            isChasing = false; // Stop chasing
+            isAttacking = true; // Start attacking
+            agent.isStopped = true;
+        }
     }
-
     private void AttackPlayer()
     {
+        attackTimer += Time.deltaTime;
+        if (attackTimer >= attackCooldown)
+        {
+            // Attack logic here
+            Debug.Log("Attacking player for " + damage + " damage!");
+            attackTimer = 0f; // Reset the attack timer
+            isAttacking = false; // Reset attacking state after attack
+            isRetreating = true; // Set retreating state after attack
 
+            // Create a point directly away from the player, once, right as enemy will enter retreat
+            Vector3 retreatDirection = (transform.position - playerTarget.position).normalized;
+            destination = transform.position + retreatDirection * retreatDistance;
+            agent.SetDestination(destination);
+            agent.isStopped = false; // resume movement now that the attack landed
+        }
+
+        else if (Vector3.Distance(transform.position, playerTarget.position) > attackRange)
+        {
+            // Player escaped before the attack finished charging
+            isAttacking = false;
+            isChasing = true;
+            agent.isStopped = false;
+            attackTimer = 0f; // don't carry progress into the next attempt
+        }
     }
-
+    private void Retreat()
+    {
+        // Wait till enemy arrived at the retreat point
+        if (!agent.pathPending && agent.remainingDistance <= 0.5f)
+        {
+            isRetreating = false;
+            isChasing = true;
+        }
+    }
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        destination = agent.destination;
     }
-
     void Update()
     {
-        
+        if (isChasing)
+        {
+            ChasePlayer();
+        }
+
+        else if (isAttacking)
+        {
+            AttackPlayer();
+        }
+
+        else if (isRetreating)
+        {
+            Retreat();
+        }
+
+        else
+        {
+            Patrol();
+        }
     }
 }

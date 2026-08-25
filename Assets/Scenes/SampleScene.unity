@@ -683,6 +683,7 @@ GameObject:
   - component: {fileID: 524767814}
   - component: {fileID: 524767813}
   - component: {fileID: 524767815}
+  - component: {fileID: 524767816}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -704,8 +705,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   walkSpeed: 8
   turnSpeed: 4
-  gravity: 9.81
+  gravity: 15
   jumpHeight: 2
+  isGliding: 0
   playerCamera: {fileID: 330585546}
 --- !u!4 &524767814
 Transform:
@@ -748,6 +750,34 @@ CharacterController:
   m_SkinWidth: 0.01
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &524767816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524767811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71639feeca8ae83418fb75b79dd830c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  maxAttackAngle: 60
+  attackRadius: 2
+  spinRadius: 4
+  groundPoundRadius: 6
+  ultimateRadius: 8
+  attackDamage: 1
+  spinDamage: 3
+  groundPoundDamage: 3
+  ultimateDamage: 5
+  strikeCooldown: 0.5
+  spinCooldown: 5
+  groundPoundCooldown: 10
+  ultimateCooldown: 30
 --- !u!1 &580792114
 GameObject:
   m_ObjectHideFlags: 0
@@ -963,7 +993,8 @@ GameObject:
   - component: {fileID: 799657246}
   - component: {fileID: 799657247}
   - component: {fileID: 799657248}
-  m_Layer: 0
+  - component: {fileID: 799657249}
+  m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1026,6 +1057,29 @@ MonoBehaviour:
   retreatDistance: 4
   damage: 1
   attackCooldown: 1
+--- !u!136 &799657249
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799657245}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.61791754
+  m_Height: 1.2358351
+  m_Direction: 1
+  m_Center: {x: -0.11791754, y: 0.5009953, z: 0}
 --- !u!1 &802098175
 GameObject:
   m_ObjectHideFlags: 0

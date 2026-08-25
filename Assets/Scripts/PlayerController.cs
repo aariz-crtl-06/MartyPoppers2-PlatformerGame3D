@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float turnSpeed = 1f;
     [SerializeField] float gravity = 9.81f;
     [SerializeField] float jumpHeight = 2f;
-    private bool isGliding;
+    public bool isGliding;
 
     private float verticalVelocity = 0f;
 

@@ -5,6 +5,7 @@ public class PlayerCombat : MonoBehaviour
     [Header("References")]
     PlayerController playerControl;
     CharacterController controller;
+    EnemyAI enemyAI;
     [SerializeField] LayerMask enemyLayer;
 
     [Header("Combat Settings")]
@@ -17,6 +18,7 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField] int spinDamage = 3;
     [SerializeField] int groundPoundDamage = 3;
     [SerializeField] int ultimateDamage = 5;
+    [SerializeField] float slamSpeed = 20f;
 
     [Header("Attack State")]
     bool canStrike = true;
@@ -36,6 +38,9 @@ public class PlayerCombat : MonoBehaviour
     float groundPoundTimer = 10f;
     float ultimateTimer = 0f;
 
+    [Header("Health")]
+    [SerializeField] int playerHealth = 6;
+
     private void Strike()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRadius, enemyLayer);
@@ -46,6 +51,11 @@ public class PlayerCombat : MonoBehaviour
 
             if (angle <= maxAttackAngle)
             {
+                EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(attackDamage);
+                }
                 Debug.Log("Hit " + hitCollider.name + " for strike with" + attackDamage + " damage.");
             }
         }
@@ -55,17 +65,30 @@ public class PlayerCombat : MonoBehaviour
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, spinRadius, enemyLayer);
         foreach (var hitCollider in hitColliders)
         {
-            Debug.Log("Hit " + hitCollider.name + " for spin with " + spinDamage + " damage.");
+            EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(spinDamage);
+                Debug.Log("Hit " + hitCollider.name + " for spin with " + spinDamage + " damage.");
+            }
         }
 
     }
 
     private void GroundPound()
     {
+        playerControl.GroundPoundSlam(slamSpeed); //slam player downwards
+
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, groundPoundRadius, enemyLayer);
         foreach (var hitCollider in hitColliders)
         {
-            Debug.Log("Hit " + hitCollider.name + " for ground pound with " + groundPoundDamage + " damage.");
+            EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(groundPoundDamage);
+                Debug.Log("Hit " + hitCollider.name + " for ground pound with " + groundPoundDamage + " damage.");
+            }
+                
         }
     }
 
@@ -74,13 +97,36 @@ public class PlayerCombat : MonoBehaviour
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, ultimateRadius, enemyLayer);
         foreach (var hitCollider in hitColliders)
         {
-            Debug.Log("Hit " + hitCollider.name + " for ultimate with " + ultimateDamage + " damage.");
+            EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(ultimateDamage);
+                Debug.Log("Hit " + hitCollider.name + " for ultimate with " + ultimateDamage + " damage.");
+            }
         }
     }
+
+    public void TakeDamage(int damage)
+    {
+        playerHealth -= damage;
+        Debug.Log("Player took " + damage + " damage. Remaining health: " + playerHealth);
+        if (playerHealth <= 0)
+        {
+            Die();
+        }
+    }
+    
+    private void Die()
+    {
+        Debug.Log("Player has died.");
+        // Add death logic here (e.g., respawn, game over screen, etc.)
+    }
+
     void Start()
     {
         playerControl = GetComponent<PlayerController>();
         controller = GetComponent<CharacterController>();
+        enemyAI = GetComponent<EnemyAI>();
     }
     
     void Update()
@@ -130,26 +176,27 @@ public class PlayerCombat : MonoBehaviour
 
         // Compute this FIRST so the other checks below can reference it
         //Accounts for slack by allowing different ways to fire both buttons
-        bool ultimateComboPressed =
-            (Input.GetButtonDown("Fire1") && Input.GetButton("Fire2")) ||
-            (Input.GetButtonDown("Fire2") && Input.GetButton("Fire1"));
-
-        if (Input.GetButtonDown("Fire1") && canStrike && !ultimateComboPressed && controller.isGrounded)
+        if (Input.GetButtonDown("Fire1") && canStrike && controller.isGrounded)
         {
             Strike();
             strikeTimer = 0f;
         }
-        if (Input.GetButtonDown("Fire2") && canSpin && !ultimateComboPressed && controller.isGrounded)
+        if (Input.GetButtonDown("Fire2") && canSpin && controller.isGrounded)
         {
             Spin();
             spinTimer = 0f;
         }
-        if (Input.GetButtonDown("Fire1") && canGroundPound && !ultimateComboPressed && !controller.isGrounded)
+
+        bool inAir = !controller.isGrounded || playerControl.isGliding;
+
+        if (Input.GetButtonDown("Fire1") && canGroundPound && inAir)
         {
+            Debug.Log("Ground Pound Activated");
             GroundPound();
             groundPoundTimer = 0f;
         }
-        if (ultimateComboPressed && canUltimate && controller.isGrounded)
+
+        if (Input.GetButtonDown("Fire3") && canUltimate && playerControl.isGliding == false)
         {
             Ultimate();
             ultimateTimer = 0f;

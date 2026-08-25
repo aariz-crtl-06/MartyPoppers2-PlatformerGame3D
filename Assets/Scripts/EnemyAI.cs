@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
 public class EnemyAI : MonoBehaviour
@@ -5,6 +6,7 @@ public class EnemyAI : MonoBehaviour
     [Header("References")]
     [SerializeField] Transform playerTarget;
     NavMeshAgent agent;
+    PlayerCombat playerCombat;
 
     [Header("Enemy Settings")]
     [SerializeField] float chaseRange = 10f;
@@ -14,6 +16,9 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] float attackCooldown = 1f;
     float attackTimer = 0f;
     Vector3 destination;
+
+    [Header("Health")]
+    [SerializeField] int health = 3;
 
     [Header("Checks")]
     bool isChasing = false;
@@ -61,7 +66,7 @@ public class EnemyAI : MonoBehaviour
         if (attackTimer >= attackCooldown)
         {
             // Attack logic here
-            Debug.Log("Attacking player for " + damage + " damage!");
+            playerCombat.TakeDamage((int)damage);
             attackTimer = 0f; // Reset the attack timer
             isAttacking = false; // Reset attacking state after attack
             isRetreating = true; // Set retreating state after attack
@@ -91,9 +96,20 @@ public class EnemyAI : MonoBehaviour
             isChasing = true;
         }
     }
+
+    public void TakeDamage(int damageTaken)
+    {
+        health -= damageTaken;
+
+        if (health <= 0)
+        {
+            Destroy(gameObject);
+        }
+    }
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        playerCombat = playerTarget.GetComponent<PlayerCombat>();
     }
     void Update()
     {

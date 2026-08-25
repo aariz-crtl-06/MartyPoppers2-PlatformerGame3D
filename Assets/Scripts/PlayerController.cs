@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float gravity = 9.81f;
     [SerializeField] float jumpHeight = 2f;
     public bool isGliding;
-
+    private bool isGroundPounding = false;
     private float verticalVelocity = 0f;
 
 
@@ -90,24 +90,29 @@ public class PlayerController : MonoBehaviour
 
     private void UmbrellaGlide()
     {
-        // If not grounded, and pressing 'E' enable gliding
         if (!controller.isGrounded)
         {
-            if (Input.GetButton("Fire2"))
+            if (!isGroundPounding && Input.GetButton("Fire2"))
             {
                 isGliding = true;
-
             }
             else
             {
                 isGliding = false;
             }
         }
-
         else
         {
-            isGliding = false; // Disable gliding when grounded
+            isGliding = false;
+            isGroundPounding = false; // reset once we've landed
         }
+    }
+
+    public void GroundPoundSlam(float slamSpeed)
+    {
+        isGroundPounding = true;
+        isGliding = false;
+        verticalVelocity = -slamSpeed;
     }
 
     private void Movement()

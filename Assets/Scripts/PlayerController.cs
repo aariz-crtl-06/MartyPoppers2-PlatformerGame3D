@@ -93,9 +93,10 @@ public class PlayerController : MonoBehaviour
         // If not grounded, and pressing 'E' enable gliding
         if (!controller.isGrounded)
         {
-            if (Input.GetButton("Jump"))
+            if (Input.GetButton("Fire2"))
             {
                 isGliding = true;
+
             }
             else
             {

@@ -12,15 +12,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float walkSpeed = 5f;
     [SerializeField] float turnSpeed = 1f;
     [SerializeField] float gravity = 9.81f;
-    [SerializeField] float jumpHeight = 2f;
+    public float jumpHeight = 2f;
     public bool isGliding;
     private bool isGroundPounding = false;
+    private bool isBouncing = false; // for spike obstcle 
     private float verticalVelocity = 0f;
 
 
     [Header("References")]
     CharacterController controller;
     [SerializeField] Transform playerCamera;
+    private MovingPlatform currentPlatform;
 
     Vector3 moveDirection;
 
@@ -31,6 +33,14 @@ public class PlayerController : MonoBehaviour
         turnInput = Input.GetAxis("Horizontal");
     }
 
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        MovingPlatform platform = hit.collider.GetComponent<MovingPlatform>();
+        if (platform != null)
+        {
+            currentPlatform = platform;
+        }
+    }
 
     private void GroundMovement()
     {
@@ -43,8 +53,15 @@ public class PlayerController : MonoBehaviour
 
         move.y = VerticalForceCalculation(); // Apply vertical force (gravity)
 
+        Vector3 platformDelta = Vector3.zero;
+        if (currentPlatform != null)
+        {
+            platformDelta = currentPlatform.DeltaMovement;
+        }
+        currentPlatform = null; // OnControllerColliderHit will re-set this during move
+
         // Move the player
-        controller.Move(move * Time.deltaTime);
+        controller.Move((move * Time.deltaTime) + platformDelta); //to ensure player can land on platform
     }
 
     private void Turn()
@@ -66,24 +83,25 @@ public class PlayerController : MonoBehaviour
 
     private float VerticalForceCalculation()
     {
-       if (controller.isGrounded)
+        if (controller.isGrounded)
         {
-            verticalVelocity = -1f; // Apply a small downward force to keep the player grounded
-
+            if (!isBouncing)
+            {
+                verticalVelocity = -1f; // Apply a small downward force to keep the player grounded
+            }
             if (Input.GetButtonDown("Jump"))
             {
-                verticalVelocity = Mathf.Sqrt(jumpHeight * 2f * gravity); // Calculate jump velocity
+                verticalVelocity = Mathf.Sqrt(jumpHeight * 2f * gravity);
             }
         }
         else
         {
-            verticalVelocity -= gravity * Time.deltaTime; // Apply gravity when in the air
-
+            isBouncing = false; // once actually left the ground, clear the flag
+            verticalVelocity -= gravity * Time.deltaTime;
             if (isGliding)
             {
-                verticalVelocity = Mathf.Max(verticalVelocity, -1f); // Limit the fall speed when gliding
+                verticalVelocity = Mathf.Max(verticalVelocity, -1f);
             }
-            
         }
         return verticalVelocity;
     }
@@ -113,6 +131,12 @@ public class PlayerController : MonoBehaviour
         isGroundPounding = true;
         isGliding = false;
         verticalVelocity = -slamSpeed;
+    }
+
+    public void Bounce(float bounceForce)
+    {
+        isBouncing = true;
+        verticalVelocity = bounceForce;
     }
 
     private void Movement()

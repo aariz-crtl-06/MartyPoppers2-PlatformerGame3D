@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour
     CharacterController controller;
     [SerializeField] Transform playerCamera;
     private MovingPlatform currentPlatform;
+    Animator animator;
 
     Vector3 moveDirection;
 
@@ -51,6 +52,8 @@ public class PlayerController : MonoBehaviour
         // Apply speed
         move *= walkSpeed;
 
+        
+
         move.y = VerticalForceCalculation(); // Apply vertical force (gravity)
 
         Vector3 platformDelta = Vector3.zero;
@@ -69,6 +72,7 @@ public class PlayerController : MonoBehaviour
         // Rotate the player to face the direction of movement, only if there is movement input
         if (Mathf.Abs(turnInput) > 0 || Mathf.Abs(moveInput) > 0)
         {
+            animator.SetBool("isRunning", true);
             Vector3 currentLookAtDirection = controller.velocity.normalized;
             currentLookAtDirection.y = 0; // Keep rotation strictly horizontal
 
@@ -78,6 +82,11 @@ public class PlayerController : MonoBehaviour
 
             //Apply turn to character
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, turnSpeed * Time.deltaTime);
+        }
+
+        else
+        {
+            animator.SetBool("isRunning", false);
         }
     }
 
@@ -149,7 +158,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
       controller = GetComponent<CharacterController>();
-
+      animator = GetComponentInChildren<Animator>();
 
       // Lock cursor to center of screen
       Cursor.lockState = CursorLockMode.Locked;
@@ -161,6 +170,8 @@ public class PlayerController : MonoBehaviour
         InputManagement();
         UmbrellaGlide();
         Movement();
+
+        
         
     }
 }

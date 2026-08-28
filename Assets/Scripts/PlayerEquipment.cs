@@ -1,51 +1,63 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
+[System.Serializable]
+public class EquippableItem
+{
+    public string itemName;
+    public GameObject itemObject;
+    [HideInInspector] public Vector3 fullScale;
+    [HideInInspector] public Coroutine scaleRoutine;
+}
+
 public class PlayerEquipment : MonoBehaviour
 {
-    public GameObject umbrella;
-    public float growShrinkDuration = 0.4f;
+    public List<EquippableItem> items = new List<EquippableItem>();
+    public float growShrinkDuration = 0.3f;
 
-    private Vector3 umbrellaFullScale;
-    private Coroutine scaleRoutine;
+    private Dictionary<string, EquippableItem> lookup;
 
     void Awake()
     {
-        if (umbrella != null)
+        lookup = new Dictionary<string, EquippableItem>();
+        foreach (var item in items)
         {
-            umbrellaFullScale = umbrella.transform.localScale;
-            umbrella.transform.localScale = Vector3.zero;
-            umbrella.SetActive(false);
+            if (item.itemObject == null) continue;
+            item.fullScale = item.itemObject.transform.localScale;
+            item.itemObject.transform.localScale = Vector3.zero;
+            item.itemObject.SetActive(false);
+            lookup[item.itemName] = item;
         }
     }
 
-    public void ShowUmbrella()
+    public void ShowItem(string name)
     {
-        if (umbrella == null) return;
-        umbrella.SetActive(true);
-        if (scaleRoutine != null) StopCoroutine(scaleRoutine);
-        scaleRoutine = StartCoroutine(ScaleTo(umbrellaFullScale, disableAfter: false));
+        if (!lookup.TryGetValue(name, out var item) || item.itemObject == null) return;
+        item.itemObject.SetActive(true);
+        if (item.scaleRoutine != null) StopCoroutine(item.scaleRoutine);
+        item.scaleRoutine = StartCoroutine(ScaleTo(item, item.fullScale, false));
     }
 
-    public void HideUmbrella()
+    public void HideItem(string name)
     {
-        if (umbrella == null) return;
-        if (scaleRoutine != null) StopCoroutine(scaleRoutine);
-        scaleRoutine = StartCoroutine(ScaleTo(Vector3.zero, disableAfter: true));
+        if (!lookup.TryGetValue(name, out var item) || item.itemObject == null) return;
+        if (item.scaleRoutine != null) StopCoroutine(item.scaleRoutine);
+        item.scaleRoutine = StartCoroutine(ScaleTo(item, Vector3.zero, true));
     }
 
-    private IEnumerator ScaleTo(Vector3 target, bool disableAfter)
+    private IEnumerator ScaleTo(EquippableItem item, Vector3 target, bool disableAfter)
     {
-        Vector3 start = umbrella.transform.localScale;
+        Vector3 start = item.itemObject.transform.localScale;
         float t = 0f;
         while (t < growShrinkDuration)
         {
             t += Time.deltaTime;
-            float normalized = Mathf.Clamp01(t / growShrinkDuration);
-            normalized = 1f - Mathf.Pow(1f - normalized, 3f); // ease-out, feels more like a "pop"
-            umbrella.transform.localScale = Vector3.Lerp(start, target, normalized);
+            float n = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / growShrinkDuration), 3f);
+            item.itemObject.transform.localScale = Vector3.Lerp(start, target, n);
             yield return null;
         }
-        umbrella.transform.localScale = target;
-        if (disableAfter) umbrella.SetActive(false);
+        item.itemObject.transform.localScale = target;
+        if (disableAfter) item.itemObject.SetActive(false);
     }
 }

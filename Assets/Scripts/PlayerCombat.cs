@@ -7,6 +7,7 @@ public class PlayerCombat : MonoBehaviour
     CharacterController controller;
     EnemyAI enemyAI;
     [SerializeField] LayerMask enemyLayer;
+    Animator animator;
 
     [Header("Combat Settings")]
     [SerializeField] float maxAttackAngle = 60f;
@@ -25,12 +26,16 @@ public class PlayerCombat : MonoBehaviour
     bool canSpin = true;
     bool canGroundPound = false;
     bool canUltimate = false;
+    bool isStriking = false; // tracks whether the strike animation is currently playing
+    bool isSpinning = false; //tracks animation
 
     [Header("Attack Cooldowns")]
     [SerializeField] float strikeCooldown = 0.5f;
     [SerializeField] float spinCooldown = 5f;
     [SerializeField] float groundPoundCooldown = 10f;
     [SerializeField] float ultimateCooldown = 30f;
+    [SerializeField] float strikeAnimLength = 0.4f; // how long the strike animation actually takes
+    [SerializeField] float spinAnimLength = 0.8f; // how long the strike animation actually takes
 
     [Header("Attack Timers")]
     float strikeTimer = 0.5f;
@@ -56,6 +61,7 @@ public class PlayerCombat : MonoBehaviour
                 {
                     enemy.TakeDamage(attackDamage);
                 }
+                
                 Debug.Log("Hit " + hitCollider.name + " for strike with" + attackDamage + " damage.");
             }
         }
@@ -127,6 +133,7 @@ public class PlayerCombat : MonoBehaviour
         playerControl = GetComponent<PlayerController>();
         controller = GetComponent<CharacterController>();
         enemyAI = GetComponent<EnemyAI>();
+        animator = GetComponentInChildren<Animator>();
     }
     
     void Update()
@@ -172,6 +179,20 @@ public class PlayerCombat : MonoBehaviour
             canUltimate = false;
         }
 
+        // Turn off the strike animation once it's had time to play out
+        if (isStriking && strikeTimer >= strikeAnimLength)
+        {
+            animator.SetBool("isStriking", false);
+            isStriking = false;
+        }
+
+        // Turn off the strike animation once it's had time to play out
+        if (isSpinning && spinTimer >= spinAnimLength)
+        {
+            animator.SetBool("isSpinning", false);
+            isSpinning = false;
+        }
+
         //Fire commands for each attack type, with conditions for gliding and attack availability
 
         // Compute this FIRST so the other checks below can reference it
@@ -179,12 +200,18 @@ public class PlayerCombat : MonoBehaviour
         if (Input.GetButtonDown("Fire1") && canStrike && controller.isGrounded)
         {
             Strike();
+            animator.SetBool("isStriking", true);
             strikeTimer = 0f;
+            isStriking = true;
         }
+
+
         if (Input.GetButtonDown("Fire2") && canSpin && controller.isGrounded)
         {
             Spin();
+            animator.SetBool("isSpinning", true);
             spinTimer = 0f;
+            isSpinning = true;
         }
 
         bool inAir = !controller.isGrounded || playerControl.isGliding;

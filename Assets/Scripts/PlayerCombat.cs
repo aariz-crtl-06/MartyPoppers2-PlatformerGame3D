@@ -28,6 +28,7 @@ public class PlayerCombat : MonoBehaviour
     bool canUltimate = false;
     bool isStriking = false; // tracks whether the strike animation is currently playing
     bool isSpinning = false; //tracks animation
+    bool isGroundPounding = false; //tracks animation
 
     [Header("Attack Cooldowns")]
     [SerializeField] float strikeCooldown = 0.5f;
@@ -36,6 +37,7 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField] float ultimateCooldown = 30f;
     [SerializeField] float strikeAnimLength = 0.4f; // how long the strike animation actually takes
     [SerializeField] float spinAnimLength = 0.8f; // how long the strike animation actually takes
+    [SerializeField] float groundPoundAnimLength = 0.8f;
 
     [Header("Attack Timers")]
     float strikeTimer = 0.5f;
@@ -186,11 +188,18 @@ public class PlayerCombat : MonoBehaviour
             isStriking = false;
         }
 
-        // Turn off the strike animation once it's had time to play out
+        // Turn off the spin animation once it's had time to play out
         if (isSpinning && spinTimer >= spinAnimLength)
         {
             animator.SetBool("isSpinning", false);
             isSpinning = false;
+        }
+
+        // Turn off the groundpound animation once it's had time to play out
+        if (isGroundPounding && groundPoundTimer >= groundPoundAnimLength)
+        {
+            animator.SetBool("isGroundPounding", false);
+            isGroundPounding = false;
         }
 
         //Fire commands for each attack type, with conditions for gliding and attack availability
@@ -218,9 +227,10 @@ public class PlayerCombat : MonoBehaviour
 
         if (Input.GetButtonDown("Fire1") && canGroundPound && inAir)
         {
-            Debug.Log("Ground Pound Activated");
             GroundPound();
+            animator.SetBool("isGroundPounding", true);
             groundPoundTimer = 0f;
+            isGroundPounding = true;
         }
 
         if (Input.GetButtonDown("Fire3") && canUltimate && playerControl.isGliding == false)

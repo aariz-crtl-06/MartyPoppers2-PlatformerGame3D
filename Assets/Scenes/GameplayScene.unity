@@ -1470,6 +1470,7 @@ MonoBehaviour:
   ultimateCooldown: 30
   strikeAnimLength: 0.5
   spinAnimLength: 1.2
+  groundPoundAnimLength: 1.2
   playerHealth: 6
 --- !u!114 &524767817
 MonoBehaviour:

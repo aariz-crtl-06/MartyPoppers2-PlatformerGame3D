@@ -72,8 +72,14 @@ public class PlayerController : MonoBehaviour
         // Rotate the player to face the direction of movement, only if there is movement input
         if (Mathf.Abs(turnInput) > 0 || Mathf.Abs(moveInput) > 0)
         {
-            animator.SetBool("isRunning", true);
-            Vector3 currentLookAtDirection = controller.velocity.normalized;
+            if (!isGliding) 
+            { 
+                animator.SetBool("isRunning", true); 
+            }
+
+            
+
+                Vector3 currentLookAtDirection = controller.velocity.normalized;
             currentLookAtDirection.y = 0; // Keep rotation strictly horizontal
 
             currentLookAtDirection.Normalize(); // Ensure the direction is normalized
@@ -100,6 +106,7 @@ public class PlayerController : MonoBehaviour
             }
             if (Input.GetButtonDown("Jump"))
             {
+                animator.SetBool("isJumping", true);
                 verticalVelocity = Mathf.Sqrt(jumpHeight * 2f * gravity);
             }
         }
@@ -107,6 +114,7 @@ public class PlayerController : MonoBehaviour
         {
             isBouncing = false; // once actually left the ground, clear the flag
             verticalVelocity -= gravity * Time.deltaTime;
+            animator.SetBool("isJumping", false);
             if (isGliding)
             {
                 verticalVelocity = Mathf.Max(verticalVelocity, -1f);
@@ -121,10 +129,12 @@ public class PlayerController : MonoBehaviour
         {
             if (!isGroundPounding && Input.GetButton("Fire2"))
             {
+                
                 isGliding = true;
             }
             else
             {
+                
                 isGliding = false;
             }
         }
@@ -132,6 +142,16 @@ public class PlayerController : MonoBehaviour
         {
             isGliding = false;
             isGroundPounding = false; // reset once we've landed
+        }
+
+        if(isGliding)
+        {
+            animator.SetBool("isGliding", true);
+        }
+
+        else
+        {
+            animator.SetBool("isGliding", false);
         }
     }
 

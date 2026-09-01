@@ -232,4 +232,11 @@ MonoBehaviour:
   markerEndScale: 20
   warningColor: {r: 1, g: 0.92, b: 0.2, a: 0.45}
   imminentColor: {r: 1, g: 0.15, b: 0.15, a: 0.6}
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  impactRadius: 2.5
+  verticalTolerance: 4
+  damage: 2
   lingerDuration: 3
+  shrinkDuration: 0.6

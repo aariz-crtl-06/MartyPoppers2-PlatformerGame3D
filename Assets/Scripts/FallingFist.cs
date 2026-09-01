@@ -4,7 +4,7 @@ using UnityEngine;
 // hover -> warn -> fall -> linger -> destroy. The boss spawns it and forgets it.
 public class FallingFist : MonoBehaviour
 {
-    enum Phase { Warning, Falling, Landed }
+    enum Phase { Warning, Falling, Landed, Shrinking }
 
     [Header("References")]
     [SerializeField] GameObject marker;          // flat quad child, transparent material
@@ -16,14 +16,22 @@ public class FallingFist : MonoBehaviour
     [SerializeField] Color warningColor = new Color(1f, 0.92f, 0.2f, 0.45f);
     [SerializeField] Color imminentColor = new Color(1f, 0.15f, 0.15f, 0.6f);
 
+    [Header("Damage")]
+    [SerializeField] LayerMask playerLayer;
+    [SerializeField] float impactRadius = 2.5f;
+    [SerializeField] float verticalTolerance = 4f;
+    [SerializeField] int damage = 1;
+
     [Header("Timing")]
-    [SerializeField] float lingerDuration = 1f;  // how long it sits after landing
+    [SerializeField] float lingerDuration = 1.5f;   // how long it sits after landing
+    [SerializeField] float shrinkDuration = 0.6f;   // then it shrinks away instead of popping
 
     Phase phase = Phase.Warning;
     Vector3 groundTarget;
     float fallSpeed;
     float warningDuration;
     float timer;
+    Vector3 landedScale;
 
     // Called by the boss right after Instantiate.
     public void Launch(Vector3 target, float speed, float warningTime, float spawnHeight)
@@ -77,7 +85,7 @@ public class FallingFist : MonoBehaviour
 
                     if (transform.position == groundTarget)
                     {
-                        // hook for damage detection later
+                        DamageAtPoint(groundTarget);
                         timer = 0f;
                         phase = Phase.Landed;
                         if (marker != null) marker.SetActive(false);
@@ -89,11 +97,43 @@ public class FallingFist : MonoBehaviour
                 {
                     if (timer >= lingerDuration)
                     {
+                        landedScale = transform.localScale;
+                        timer = 0f;
+                        phase = Phase.Shrinking;
+                    }
+                    break;
+                }
+
+            case Phase.Shrinking:
+                {
+                    float t = Mathf.Clamp01(timer / shrinkDuration);
+                    transform.localScale = Vector3.Lerp(landedScale, Vector3.zero, t);
+
+                    if (t >= 1f)
+                    {
                         if (marker != null) Destroy(marker);
                         Destroy(gameObject);
                     }
                     break;
                 }
+        }
+    }
+
+    void DamageAtPoint(Vector3 groundPoint)
+    {
+        float searchRadius = Mathf.Max(impactRadius, verticalTolerance);
+        Collider[] hits = Physics.OverlapSphere(groundPoint, searchRadius, playerLayer);
+
+        foreach (Collider hit in hits)
+        {
+            Vector3 delta = hit.transform.position - groundPoint;
+
+            float horizontal = new Vector2(delta.x, delta.z).magnitude;
+            if (horizontal > impactRadius) continue;
+            if (Mathf.Abs(delta.y) > verticalTolerance) continue;
+
+            PlayerCombat target = hit.GetComponentInParent<PlayerCombat>();
+            if (target != null) target.TakeDamage(damage);
         }
     }
 

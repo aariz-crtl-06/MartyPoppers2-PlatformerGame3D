@@ -58,7 +58,7 @@ public class PlayerCombat : MonoBehaviour
 
             if (angle <= maxAttackAngle)
             {
-                EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+                IDamageable enemy = hitCollider.GetComponentInParent<IDamageable>();
                 if (enemy != null)
                 {
                     enemy.TakeDamage(attackDamage);
@@ -73,7 +73,7 @@ public class PlayerCombat : MonoBehaviour
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, spinRadius, enemyLayer);
         foreach (var hitCollider in hitColliders)
         {
-            EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+            IDamageable enemy = hitCollider.GetComponentInParent<IDamageable>();
             if (enemy != null)
             {
                 enemy.TakeDamage(spinDamage);
@@ -90,7 +90,7 @@ public class PlayerCombat : MonoBehaviour
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, groundPoundRadius, enemyLayer);
         foreach (var hitCollider in hitColliders)
         {
-            EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+            IDamageable enemy = hitCollider.GetComponentInParent<IDamageable>();
             if (enemy != null)
             {
                 enemy.TakeDamage(groundPoundDamage);
@@ -105,7 +105,7 @@ public class PlayerCombat : MonoBehaviour
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, ultimateRadius, enemyLayer);
         foreach (var hitCollider in hitColliders)
         {
-            EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
+            IDamageable enemy = hitCollider.GetComponentInParent<IDamageable>();
             if (enemy != null)
             {
                 enemy.TakeDamage(ultimateDamage);

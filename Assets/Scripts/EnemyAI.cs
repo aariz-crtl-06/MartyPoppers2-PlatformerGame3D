@@ -1,12 +1,13 @@
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
-public class EnemyAI : MonoBehaviour
+public class EnemyAI : MonoBehaviour, IDamageable
 {
     [Header("References")]
     [SerializeField] Transform playerTarget;
     NavMeshAgent agent;
     PlayerCombat playerCombat;
+    BossAI spawner;
 
     [Header("Enemy Settings")]
     [SerializeField] float chaseRange = 10f;
@@ -103,9 +104,18 @@ public class EnemyAI : MonoBehaviour
 
         if (health <= 0)
         {
+            if (spawner != null) spawner.OnMinionDefeated();
             Destroy(gameObject);
         }
     }
+
+    public void SetupAsMinion(Transform player, BossAI boss)
+    {
+        playerTarget = player;
+        spawner = boss;
+        isChasing = true;              // skip patrol, go straight for the player
+    }
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();

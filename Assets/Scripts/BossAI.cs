@@ -1,28 +1,55 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
-public class BossAI : MonoBehaviour
+public class BossAI : MonoBehaviour, IDamageable
 {
-    enum BossState { Idle, FistTracking, FistWindup, FistSlam, FistEmbedded, AirDeploying }
+    enum BossState
+    {
+        Idle,
+        FistTracking, FistWindup, FistSlam, FistEmbedded, FistRetracting,   // attack 1
+        AirDeploying,                                                        // attack 2
+        SpawningMinions, WaitingForMinions,                                  // attack 3
+        GiantSwap,                                                           // scale transition
+        BossTracking, BossWindup, BossSlam, BossLanding, BossStunned         // attack 4
+    }
 
     [Header("References")]
-    Animator animator;
+    [SerializeField] Animator animator;          // on the Model child
     [SerializeField] Transform player;
-    [SerializeField] GameObject giantFist;       // attack 1 only -- scene object
-    [SerializeField] GameObject marker;          // attack 1's ground marker
+    [SerializeField] GameObject giantFist;
+    [SerializeField] GameObject marker;
+    [SerializeField] GameObject giantModel;      // the big one watching during attacks 1-3
+    [SerializeField] GameObject bossModel;       // the smaller one that lands in attack 4
+    [SerializeField] GameObject giantDustPrefab;
+    [SerializeField] GameObject bossDustPrefab;
+    [SerializeField] float giantSwapDuration = 0.5f;
+    [SerializeField] float bossSwapDuration = 0.35f;
+    [SerializeField] float dustLifetime = 3f;
     [SerializeField] LayerMask groundLayer;
+
+    [Header("Damage")]
+    [SerializeField] LayerMask playerLayer;
+    [SerializeField] float verticalTolerance = 4f;   // ignores a player gliding overhead
+    [SerializeField] float fistImpactRadius = 3f;
+    [SerializeField] int fistDamage = 1;
+    [SerializeField] float bossImpactRadius = 4f;
+    [SerializeField] int bossSlamDamage = 2;
 
     [Header("Attack Flow")]
     [SerializeField] float timeBetweenAttacks = 2f;
-    [SerializeField] bool alternateAttacks = true;   // off = pick at random
+
+    [Header("Boss Health")]
+    [SerializeField] int health = 5;
 
     [Header("Attack 1 - Tracking Fist")]
-    [SerializeField] float trackDuration = 5f;    // how long the fist follows before locking
-    [SerializeField] float windupDuration = 1.2f; // locked, before it drops -- dodge window
-    [SerializeField] float embedDuration = 5f;    // stays down -- punish window
+    [SerializeField] float trackDuration = 5f;
+    [SerializeField] float windupDuration = 1.2f;
+    [SerializeField] float embedDuration = 5f;
     [SerializeField] float hoverHeight = 8f;
     [SerializeField] float slamSpeed = 40f;
+    [SerializeField] float retractSpeed = 10f;
 
     [Header("Attack 1 - Marker")]
     [SerializeField] float markerStartScale = 0.3f;
@@ -37,24 +64,46 @@ public class BossAI : MonoBehaviour
     [SerializeField] int waveCount = 4;
     [SerializeField] int fistsPerWave = 5;
     [SerializeField] float waveInterval = 3f;
-    [SerializeField] float earlyWarningTime = 5f;   // waves 1-2
-    [SerializeField] float lateWarningTime = 2f;    // waves 3-4
+    [SerializeField] float earlyWarningTime = 5f;
+    [SerializeField] float lateWarningTime = 2f;
     [SerializeField] float fistSpawnHeight = 25f;
     [SerializeField] float minFallSpeed = 12f;
     [SerializeField] float maxFallSpeed = 35f;
     [SerializeField] float playerSafeRadius = 4f;
     [SerializeField] float minSeparation = 4f;
 
+    [Header("Attack 3 - Minions")]
+    [SerializeField] GameObject enemyPrefab;
+    [SerializeField] int minionCount = 3;
+    [SerializeField] float minionSpawnRadius = 12f;
+    [SerializeField] float minionPhaseTimeout = 60f;   // safety valve -- never soft-lock
+
+    [Header("Attack 4 - Boss Ground Pound")]
+    [SerializeField] float bossHoverHeight = 18f;
+    [SerializeField] float bossTrackDuration = 5f;    // follows the player, same as attack 1
+    [SerializeField] float bossWindupDuration = 1.5f;
+    [SerializeField] float bossSlamSpeed = 35f;
+    [SerializeField] float landAnimDuration = 0.7f;   // length of the JumpLand clip
+    [SerializeField] float minStunDuration = 5f;
+    [SerializeField] float maxStunDuration = 10f;
+
     [Header("Debug (read-only)")]
     [SerializeField] BossState state = BossState.Idle;
+    [SerializeField] int attackIndex = 0;
+    [SerializeField] int minionsDefeated = 0;
 
     float idleCountdown;
     float phaseTimer;
     Vector3 slamTarget;
-    bool nextIsAirDeploy = false;
     Renderer markerRenderer;
+    List<GameObject> activeMinions = new List<GameObject>();
+    Vector3 homePosition;
+    Vector3 bossLandTarget;
+    float stunDuration;
+    Vector3 giantFullScale = Vector3.one;
+    Vector3 bossFullScale = Vector3.one;
 
-    // ---------------- attack selection ----------------
+    // ---------------- attack flow ----------------
 
     private void Idle()
     {
@@ -63,11 +112,15 @@ public class BossAI : MonoBehaviour
 
         idleCountdown = 0f;
 
-        bool useAirDeploy = alternateAttacks ? nextIsAirDeploy : (Random.value < 0.5f);
-        nextIsAirDeploy = !nextIsAirDeploy;
+        switch (attackIndex)
+        {
+            case 0: StartFistAttack(); break;
+            case 1: StartAirDeploy(); break;
+            case 2: StartMinionPhase(); break;
+            case 3: StartVulnerable(); break;
+        }
 
-        if (useAirDeploy) StartAirDeploy();
-        else StartFistAttack();
+        attackIndex = (attackIndex + 1) % 4;
     }
 
     private void EndAttack()
@@ -99,13 +152,12 @@ public class BossAI : MonoBehaviour
         Vector3 playerPos = player.position;
         giantFist.transform.position = new Vector3(playerPos.x, playerPos.y + hoverHeight, playerPos.z);
 
-        // marker trails the player, growing as the lock approaches
         float t = Mathf.Clamp01(phaseTimer / trackDuration);
         PlaceMarker(GroundPointBelow(playerPos), Mathf.Lerp(markerStartScale, markerEndScale, t));
 
         if (phaseTimer >= trackDuration)
         {
-            // commit: target is now frozen, this is what makes it dodgeable
+            // commit: target frozen from here, which is what makes it dodgeable
             slamTarget = GroundPointBelow(playerPos);
             PlaceMarker(slamTarget, markerEndScale);
             SetMarkerColor(lockedColor);
@@ -131,7 +183,7 @@ public class BossAI : MonoBehaviour
 
         if (giantFist.transform.position == slamTarget)
         {
-            // hook for damage detection later
+            DamageAtPoint(slamTarget, fistImpactRadius, fistDamage);
             phaseTimer = 0f;
             state = BossState.FistEmbedded;
         }
@@ -144,8 +196,21 @@ public class BossAI : MonoBehaviour
 
         if (phaseTimer >= embedDuration)
         {
-            if (giantFist != null) giantFist.SetActive(false);
             if (marker != null) marker.SetActive(false);
+            state = BossState.FistRetracting;
+        }
+    }
+
+    private void FistRetracting()
+    {
+        Vector3 restPos = slamTarget + Vector3.up * hoverHeight;
+
+        giantFist.transform.position = Vector3.MoveTowards(
+            giantFist.transform.position, restPos, retractSpeed * Time.deltaTime);
+
+        if (giantFist.transform.position == restPos)
+        {
+            if (giantFist != null) giantFist.SetActive(false);
             EndAttack();
         }
     }
@@ -176,7 +241,6 @@ public class BossAI : MonoBehaviour
             yield return new WaitForSeconds(waveInterval);
         }
 
-        // let the last wave land before the next attack begins
         yield return new WaitForSeconds(lateWarningTime + 1f);
         EndAttack();
     }
@@ -192,7 +256,6 @@ public class BossAI : MonoBehaviour
             Vector3 chosen = Vector3.zero;
             bool found = false;
 
-            // capped retries -- never loop forever on an unlucky seed
             for (int attempt = 0; attempt < 30; attempt++)
             {
                 Vector2 offset = Random.insideUnitCircle * arenaRadius;
@@ -220,7 +283,6 @@ public class BossAI : MonoBehaviour
 
             if (!found)
             {
-                // relax the constraints rather than spawning fewer fists
                 Vector2 offset = Random.insideUnitCircle * arenaRadius;
                 chosen = center + new Vector3(offset.x, 0f, offset.y);
             }
@@ -231,13 +293,283 @@ public class BossAI : MonoBehaviour
         return points;
     }
 
+    // ---------------- attack 3: minions ----------------
+
+    private void StartMinionPhase()
+    {
+        minionsDefeated = 0;
+        phaseTimer = 0f;
+        activeMinions.Clear();
+
+        Vector3 center = (arenaCenter != null) ? arenaCenter.position : transform.position;
+
+        for (int i = 0; i < minionCount; i++)
+        {
+            // space them evenly around the arena rather than clumping
+            float angle = (360f / minionCount) * i + Random.Range(-20f, 20f);
+            Vector3 dir = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+            Vector3 candidate = center + dir * minionSpawnRadius;
+
+            // NavMeshAgents must start on the baked mesh
+            if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, 10f, NavMesh.AllAreas))
+                candidate = hit.position;
+
+            GameObject obj = Instantiate(enemyPrefab, candidate, Quaternion.identity);
+            EnemyAI enemy = obj.GetComponent<EnemyAI>();
+            if (enemy != null) enemy.SetupAsMinion(player, this);
+
+            activeMinions.Add(obj);
+        }
+
+        state = BossState.WaitingForMinions;
+    }
+
+    // called by EnemyAI when a spawned minion dies
+    public void OnMinionDefeated()
+    {
+        minionsDefeated++;
+    }
+
+    private void WaitingForMinions()
+    {
+        phaseTimer += Time.deltaTime;
+
+        if (minionsDefeated >= minionCount)
+        {
+            EndAttack();   // attackIndex already points at attack 4
+            return;
+        }
+
+        // safety valve: a stuck or fallen minion must never soft-lock the fight
+        if (phaseTimer >= minionPhaseTimeout)
+        {
+            CleanupMinions();
+            EndAttack();
+        }
+    }
+
+    private void CleanupMinions()
+    {
+        foreach (GameObject minion in activeMinions)
+            if (minion != null) Destroy(minion);
+
+        activeMinions.Clear();
+    }
+
+    // ---------------- attack 4: boss ground pound + stun ----------------
+
+    private void StartVulnerable()
+    {
+        state = BossState.GiantSwap;
+        StartCoroutine(GiantExitRoutine());
+    }
+
+    // giant shrinks away, then the smaller boss grows in above the player
+    private IEnumerator GiantExitRoutine()
+    {
+        if (giantModel != null)
+        {
+            SpawnDust(giantDustPrefab, giantModel.transform.position);
+            yield return ScaleOver(giantModel, giantFullScale, Vector3.zero, giantSwapDuration);
+            giantModel.SetActive(false);
+        }
+
+        // move into position before appearing, so it grows in where it belongs
+        Vector3 playerPos = player.position;
+        transform.position = new Vector3(playerPos.x, playerPos.y + bossHoverHeight, playerPos.z);
+
+        if (bossModel != null)
+        {
+            bossModel.transform.localScale = Vector3.zero;
+            bossModel.SetActive(true);
+            SpawnDust(bossDustPrefab, bossModel.transform.position);
+            yield return ScaleOver(bossModel, Vector3.zero, bossFullScale, bossSwapDuration);
+        }
+
+        phaseTimer = 0f;
+        if (marker != null)
+        {
+            marker.SetActive(true);
+            SetMarkerColor(trackingColor);
+        }
+
+        PlayAnim("Idle");            // airborne for the whole track + windup
+        state = BossState.BossTracking;
+    }
+
+    // boss shrinks away, then the giant grows back
+    private IEnumerator GiantEnterRoutine()
+    {
+        if (bossModel != null)
+        {
+            SpawnDust(bossDustPrefab, bossModel.transform.position);
+            yield return ScaleOver(bossModel, bossFullScale, Vector3.zero, bossSwapDuration);
+            bossModel.SetActive(false);
+        }
+
+        transform.position = homePosition;
+
+        if (giantModel != null)
+        {
+            giantModel.transform.localScale = Vector3.zero;
+            giantModel.SetActive(true);
+            SpawnDust(giantDustPrefab, giantModel.transform.position);
+            yield return ScaleOver(giantModel, Vector3.zero, giantFullScale, giantSwapDuration);
+        }
+
+        EndAttack();
+    }
+
+    private IEnumerator ScaleOver(GameObject obj, Vector3 from, Vector3 to, float duration)
+    {
+        if (obj == null) yield break;
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            obj.transform.localScale = Vector3.Lerp(from, to, Mathf.Clamp01(t / duration));
+            yield return null;
+        }
+
+        obj.transform.localScale = to;
+    }
+
+    private void SpawnDust(GameObject prefab, Vector3 position)
+    {
+        if (prefab == null) return;
+
+        GameObject dust = Instantiate(prefab, position, Quaternion.identity);
+        Destroy(dust, dustLifetime);
+    }
+
+    private void BossTracking()
+    {
+        phaseTimer += Time.deltaTime;
+
+        // boss hovers overhead and follows, exactly like the fist in attack 1
+        Vector3 playerPos = player.position;
+        transform.position = new Vector3(playerPos.x, playerPos.y + bossHoverHeight, playerPos.z);
+
+        float t = Mathf.Clamp01(phaseTimer / bossTrackDuration);
+        PlaceMarker(GroundPointBelow(playerPos), Mathf.Lerp(markerStartScale, markerEndScale, t));
+
+        if (phaseTimer >= bossTrackDuration)
+        {
+            // commit: landing spot frozen from here
+            bossLandTarget = GroundPointBelow(playerPos);
+            PlaceMarker(bossLandTarget, markerEndScale);
+            SetMarkerColor(lockedColor);
+
+            phaseTimer = 0f;
+            state = BossState.BossWindup;
+        }
+    }
+
+    private void BossWindup()
+    {
+        phaseTimer += Time.deltaTime;
+
+        // hold still above the locked spot -- this is the dodge window
+        transform.position = bossLandTarget + Vector3.up * bossHoverHeight;
+
+        if (phaseTimer >= bossWindupDuration)
+            state = BossState.BossSlam;
+    }
+
+    private void BossSlam()
+    {
+        transform.position = Vector3.MoveTowards(
+            transform.position, bossLandTarget, bossSlamSpeed * Time.deltaTime);
+
+        if (transform.position == bossLandTarget)
+        {
+            DamageAtPoint(bossLandTarget, bossImpactRadius, bossSlamDamage);
+            if (marker != null) marker.SetActive(false);
+
+            PlayAnim("JumpLand");
+            phaseTimer = 0f;
+            state = BossState.BossLanding;
+        }
+    }
+
+    private void BossLanding()
+    {
+        // let the landing clip finish before the stun begins
+        phaseTimer += Time.deltaTime;
+
+        if (phaseTimer >= landAnimDuration)
+        {
+            PlayAnim("Hurt");
+            stunDuration = Random.Range(minStunDuration, maxStunDuration);
+            phaseTimer = 0f;
+            state = BossState.BossStunned;
+        }
+    }
+
+    private void BossStunned()
+    {
+        // the only window where TakeDamage does anything
+        phaseTimer += Time.deltaTime;
+
+        if (phaseTimer >= stunDuration)
+        {
+            PlayAnim("Idle");
+
+            state = BossState.GiantSwap;
+            StartCoroutine(GiantEnterRoutine());
+        }
+    }
+
+    // matches EnemyAI's signature so your existing PlayerCombat hits this too
+    public void TakeDamage(int damageTaken)
+    {
+        if (state != BossState.BossStunned) return;   // armoured every other phase
+
+        health -= damageTaken;
+
+        if (health <= 0)
+        {
+            CleanupMinions();
+            Destroy(gameObject);
+        }
+    }
+
     // ---------------- shared helpers ----------------
+
+    // One overlap check on the impact frame. More predictable than letting a
+    // fast collider try to catch a CharacterController.
+    private void DamageAtPoint(Vector3 groundPoint, float radius, int damage)
+    {
+        float searchRadius = Mathf.Max(radius, verticalTolerance);
+        Collider[] hits = Physics.OverlapSphere(groundPoint, searchRadius, playerLayer);
+
+        foreach (Collider hit in hits)
+        {
+            Vector3 delta = hit.transform.position - groundPoint;
+
+            float horizontal = new Vector2(delta.x, delta.z).magnitude;
+            if (horizontal > radius) continue;                       // dodged sideways
+            if (Mathf.Abs(delta.y) > verticalTolerance) continue;    // above or below
+
+            PlayerCombat target = hit.GetComponentInParent<PlayerCombat>();
+            if (target != null) target.TakeDamage(damage);
+        }
+    }
+
+    private void PlayAnim(string stateName)
+    {
+        if (animator == null) return;
+
+        // CrossFade plays a state directly, so no transitions need wiring in the
+        // Animator window. 0.1 is the blend time between clips.
+        animator.CrossFade(stateName, 0.1f, 0, 0f);
+    }
 
     private void PlaceMarker(Vector3 groundPoint, float scale)
     {
         if (marker == null) return;
 
-        // small lift to avoid z-fighting with the ground mesh
         marker.transform.position = groundPoint + Vector3.up * 0.05f;
         marker.transform.localScale = new Vector3(scale, scale, scale);
     }
@@ -257,14 +589,6 @@ public class BossAI : MonoBehaviour
         return new Vector3(worldPos.x, transform.position.y, worldPos.z);
     }
 
-    private void GroundSlam()
-    {
-    }
-
-    private void Stunned()
-    {
-    }
-
     void Start()
     {
         if (marker != null)
@@ -273,6 +597,22 @@ public class BossAI : MonoBehaviour
             marker.SetActive(false);
         }
         if (giantFist != null) giantFist.SetActive(false);
+
+        if (animator == null) animator = GetComponentInChildren<Animator>();
+
+        if (giantModel != null)
+        {
+            giantFullScale = giantModel.transform.localScale;
+            giantModel.SetActive(true);
+        }
+
+        if (bossModel != null)
+        {
+            bossFullScale = bossModel.transform.localScale;
+            bossModel.SetActive(false);   // hidden during attacks 1-3
+        }
+
+        homePosition = transform.position;   // where the boss sits during attacks 1-3
     }
 
     void Update()
@@ -284,7 +624,15 @@ public class BossAI : MonoBehaviour
             case BossState.FistWindup: FistWindup(); break;
             case BossState.FistSlam: FistSlam(); break;
             case BossState.FistEmbedded: FistEmbedded(); break;
-            case BossState.AirDeploying: /* coroutine drives this */ break;
+            case BossState.FistRetracting: FistRetracting(); break;
+            case BossState.AirDeploying:      /* coroutine drives */ break;
+            case BossState.GiantSwap:         /* coroutine drives */ break;
+            case BossState.WaitingForMinions: WaitingForMinions(); break;
+            case BossState.BossTracking: BossTracking(); break;
+            case BossState.BossWindup: BossWindup(); break;
+            case BossState.BossSlam: BossSlam(); break;
+            case BossState.BossLanding: BossLanding(); break;
+            case BossState.BossStunned: BossStunned(); break;
         }
     }
 }

@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Unity.Cinemachine;
 public class PlayerCombat : MonoBehaviour
 {
     [Header("References")]
@@ -7,6 +7,9 @@ public class PlayerCombat : MonoBehaviour
     CharacterController controller;
     EnemyAI enemyAI;
     [SerializeField] LayerMask enemyLayer;
+    [SerializeField] CinemachineImpulseSource impulseSource;
+    [SerializeField] float damageShakeForce = 0.5f;
+    [SerializeField] float attackShakeForce = 0.2f;
     Animator animator;
 
     [Header("Combat Settings")]
@@ -63,8 +66,8 @@ public class PlayerCombat : MonoBehaviour
                 {
                     enemy.TakeDamage(attackDamage);
                 }
-                
-                Debug.Log("Hit " + hitCollider.name + " for strike with" + attackDamage + " damage.");
+
+                impulseSource.GenerateImpulseWithForce(attackShakeForce);
             }
         }
     }
@@ -77,7 +80,7 @@ public class PlayerCombat : MonoBehaviour
             if (enemy != null)
             {
                 enemy.TakeDamage(spinDamage);
-                Debug.Log("Hit " + hitCollider.name + " for spin with " + spinDamage + " damage.");
+                impulseSource.GenerateImpulseWithForce(attackShakeForce);
             }
         }
 
@@ -94,7 +97,7 @@ public class PlayerCombat : MonoBehaviour
             if (enemy != null)
             {
                 enemy.TakeDamage(groundPoundDamage);
-                Debug.Log("Hit " + hitCollider.name + " for ground pound with " + groundPoundDamage + " damage.");
+                impulseSource.GenerateImpulseWithForce(attackShakeForce);
             }
                 
         }
@@ -109,7 +112,7 @@ public class PlayerCombat : MonoBehaviour
             if (enemy != null)
             {
                 enemy.TakeDamage(ultimateDamage);
-                Debug.Log("Hit " + hitCollider.name + " for ultimate with " + ultimateDamage + " damage.");
+                impulseSource.GenerateImpulseWithForce(attackShakeForce);
             }
         }
     }
@@ -117,6 +120,8 @@ public class PlayerCombat : MonoBehaviour
     public void TakeDamage(int damage)
     {
         playerHealth -= damage;
+        if (impulseSource != null)
+            impulseSource.GenerateImpulseWithForce(damageShakeForce);
         Debug.Log("Player took " + damage + " damage. Remaining health: " + playerHealth);
         if (playerHealth <= 0)
         {

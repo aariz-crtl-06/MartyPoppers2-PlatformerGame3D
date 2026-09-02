@@ -531,6 +531,7 @@ public class BossAI : MonoBehaviour, IDamageable
         if (health <= 0)
         {
             CleanupMinions();
+            SpawnDust(bossDustPrefab, bossModel.transform.position);
             Destroy(gameObject);
         }
     }

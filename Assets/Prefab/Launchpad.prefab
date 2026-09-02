@@ -1,0 +1,201 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &9103097749882842821
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 99976014261242400}
+  - component: {fileID: 1986031208771437550}
+  - component: {fileID: 4552961837656300452}
+  m_Layer: 0
+  m_Name: Launchpad
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &99976014261242400
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9103097749882842821}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 15.74, y: 0.89670455, z: 0.79}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 729705462315098420}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1986031208771437550
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9103097749882842821}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.8064661, y: 1.2065899, z: 1.8833232}
+  m_Center: {x: 0.025386333, y: 0.103295416, z: 0.019877315}
+--- !u!114 &4552961837656300452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9103097749882842821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d81b13e4c342364cbf6da109f7ebafd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Launchpad
+  boostedJumpHeight: 10
+  jumpButton: Jump
+  launchTriggerName: Launch
+  padAnimator: {fileID: 5963384412890329235}
+--- !u!1001 &984835026171021023
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 99976014261242400}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.020458221
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.7867042
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.1180557
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: m_Name
+      value: BouncePad
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6466366323214080466}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5963384412890329235}
+  m_SourcePrefab: {fileID: 100100000, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+--- !u!1 &102386440859843470 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+  m_PrefabInstance: {fileID: 984835026171021023}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &6466366323214080466
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102386440859843470}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4.5714293, y: 1.4285713, z: 4.428571}
+  m_Center: {x: 0.214285, y: 0.7857143, z: 0.42857137}
+--- !u!95 &5963384412890329235
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102386440859843470}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 831325e07dc10844789feb5a20eb99ed, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!4 &729705462315098420 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+  m_PrefabInstance: {fileID: 984835026171021023}
+  m_PrefabAsset: {fileID: 0}

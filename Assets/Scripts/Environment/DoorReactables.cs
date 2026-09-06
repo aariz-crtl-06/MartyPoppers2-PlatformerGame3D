@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class DoorReactables : MonoBehaviour
 {
+
     [Header("Keys")]
     public GameObject redKey;
     public GameObject blueKey;
@@ -19,11 +20,6 @@ public class DoorReactables : MonoBehaviour
 
    
 
-    void Update()
-    {
-        
-
-    }
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("redKey"))
@@ -46,16 +42,19 @@ public class DoorReactables : MonoBehaviour
 
         if (other.CompareTag("redDoor") && hasRedKey)
         {
+            other.GetComponent<DoorFadeOut>().Open();
             Debug.Log("Red door opened!");
         }
 
         if (other.CompareTag("blueDoor") && hasBlueKey)
         {
+            other.GetComponent<DoorFadeOut>().Open();
             Debug.Log("Blue door opened!");
         }
 
         if (other.CompareTag("yellowDoor") && hasYellowKey)
         {
+            other.GetComponent<DoorFadeOut>().Open();
             Debug.Log("Yellow door opened!");
         }
     }

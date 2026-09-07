@@ -40,7 +40,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         // Only pick a new random point once actually arrived at the current one
         if (!agent.pathPending && agent.remainingDistance <= 1f)
         {
-            Vector3 randomOffset = Random.insideUnitSphere * 10f;
+            Vector3 randomOffset = Random.insideUnitSphere * 5f;
 
             randomOffset.y = 0f; // keep the patrol point on the same horizontal plane
 

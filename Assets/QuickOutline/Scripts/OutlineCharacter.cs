@@ -7,7 +7,7 @@ using UnityEngine;
 public class OutlineCharacter : MonoBehaviour
 {
 
-    private const int StencilRef = 16; // upper nibble (0x10) — was 2
+    private const int StencilRef = 4;         // 0x04 — bit 2
 
 
     private static HashSet<Mesh> registeredMeshes = new HashSet<Mesh>();
@@ -68,10 +68,10 @@ public class OutlineCharacter : MonoBehaviour
 
         // Restrict this instance to the upper nibble of the stencil buffer so it
         // physically can't overwrite bits the environment's Outline1 script uses
-        outlineMaskMaterial.SetInt("_StencilWriteMask", 240); // 0xF0
-        outlineMaskMaterial.SetInt("_StencilReadMask", 240);
-        outlineFillMaterial.SetInt("_StencilWriteMask", 240);
-        outlineFillMaterial.SetInt("_StencilReadMask", 240);
+        outlineMaskMaterial.SetInt("_StencilWriteMask", 12); // 0x0C — bits 2-3
+        outlineMaskMaterial.SetInt("_StencilReadMask", 12);
+        outlineFillMaterial.SetInt("_StencilWriteMask", 12);
+        outlineFillMaterial.SetInt("_StencilReadMask", 12);
 
         LoadSmoothNormals();
         needsUpdate = true;

@@ -3,9 +3,9 @@
     [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("ZTest", Float) = 0
     _OutlineColor("Outline Color", Color) = (1, 1, 1, 1)
     _OutlineWidth("Outline Width", Range(0, 10)) = 2
-    _StencilRef("Stencil Ref", Int) = 1
-    _StencilWriteMask("Stencil Write Mask", Int) = 15
-    _StencilReadMask("Stencil Read Mask", Int) = 15
+   _StencilRef("Stencil Ref", Int) = 1
+_StencilWriteMask("Stencil Write Mask", Int) = 3   // was 15 — now 0x03 (bits 0-1)
+_StencilReadMask("Stencil Read Mask", Int) = 3
   }
   SubShader {
     Tags {

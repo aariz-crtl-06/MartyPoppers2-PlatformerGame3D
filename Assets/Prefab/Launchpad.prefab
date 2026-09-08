@@ -135,6 +135,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BouncePad
       objectReference: {fileID: 0}
+    - target: {fileID: 1145542284543255329, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1f881671d2b89464da8e1a6db3d904ec, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -145,7 +149,33 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5963384412890329235}
+    - targetCorrespondingSourceObject: {fileID: -8245822167100035493, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8600565647839789350}
   m_SourcePrefab: {fileID: 100100000, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+--- !u!1 &16363277415917700 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -8245822167100035493, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}
+  m_PrefabInstance: {fileID: 984835026171021023}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8600565647839789350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 16363277415917700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 759e6c4df6162a04090fd69fe0acbd5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OutlineItem
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 1
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &102386440859843470 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7416517f3de6b5d4090486d07e25ed88, type: 3}

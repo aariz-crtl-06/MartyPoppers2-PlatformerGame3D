@@ -7,6 +7,7 @@ public class DoorReactables : MonoBehaviour
     public GameObject redKey;
     public GameObject blueKey;
     public GameObject yellowKey;
+    public Transform hubSpawn;
 
     //[Header("Doors")]
     //public GameObject redDoor;
@@ -18,7 +19,26 @@ public class DoorReactables : MonoBehaviour
     public bool hasBlueKey;
     public bool hasYellowKey;
 
-   
+    private CharacterController controller;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+    }
+
+    private void TeleportToHub()
+    {
+        if (controller != null)
+        {
+            controller.enabled = false;
+            transform.position = hubSpawn.position;
+            controller.enabled = true;
+        }
+        else
+        {
+            transform.position = hubSpawn.position;
+        }
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -32,12 +52,14 @@ public class DoorReactables : MonoBehaviour
         {
             hasBlueKey = true;
             blueKey.SetActive(false);
+            TeleportToHub();
         }
 
         if (other.CompareTag("yellowKey"))
         {
             hasYellowKey = true;
             yellowKey.SetActive(false);
+            TeleportToHub();
         }
 
         if (other.CompareTag("redDoor") && hasRedKey)

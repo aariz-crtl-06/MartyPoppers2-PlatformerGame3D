@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Cinemachine;
+using System;
 public class PlayerCombat : MonoBehaviour
 {
     [Header("References")]
@@ -49,7 +50,9 @@ public class PlayerCombat : MonoBehaviour
     float ultimateTimer = 0f;
 
     [Header("Health")]
-    [SerializeField] int playerHealth = 6;
+    public int playerHealth;
+    public int maxHealth = 6;
+    public event Action OnPlayerDeath;
 
     private void Strike()
     {
@@ -125,22 +128,30 @@ public class PlayerCombat : MonoBehaviour
         Debug.Log("Player took " + damage + " damage. Remaining health: " + playerHealth);
         if (playerHealth <= 0)
         {
-            Die();
+            OnPlayerDeath?.Invoke();
         }
     }
-    
-    private void Die()
+
+    public void Respawn()
     {
-        Debug.Log("Player has died.");
-        // Add death logic here (e.g., respawn, game over screen, etc.)
+        controller.enabled = false;
+        transform.position = CheckpointManager.Instance.CurrentRespawnPosition;
+        controller.enabled = true;
+        playerHealth = maxHealth;
     }
 
+    public void Kill()
+    {
+        playerHealth = 0;
+        OnPlayerDeath?.Invoke();
+    }
     void Start()
     {
         playerControl = GetComponent<PlayerController>();
         controller = GetComponent<CharacterController>();
         enemyAI = GetComponent<EnemyAI>();
         animator = GetComponentInChildren<Animator>();
+        OnPlayerDeath += Respawn;
     }
     
     void Update()

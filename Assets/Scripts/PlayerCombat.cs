@@ -151,7 +151,6 @@ public class PlayerCombat : MonoBehaviour
         controller = GetComponent<CharacterController>();
         enemyAI = GetComponent<EnemyAI>();
         animator = GetComponentInChildren<Animator>();
-        OnPlayerDeath += Respawn;
     }
     
     void Update()

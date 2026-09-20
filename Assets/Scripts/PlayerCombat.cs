@@ -36,18 +36,18 @@ public class PlayerCombat : MonoBehaviour
 
     [Header("Attack Cooldowns")]
     [SerializeField] float strikeCooldown = 0.5f;
-    [SerializeField] float spinCooldown = 5f;
-    [SerializeField] float groundPoundCooldown = 10f;
-    [SerializeField] float ultimateCooldown = 30f;
+    public float spinCooldown = 3f;
+    public float groundPoundCooldown = 8f;
+    public float ultimateCooldown = 12f;
     [SerializeField] float strikeAnimLength = 0.4f; // how long the strike animation actually takes
     [SerializeField] float spinAnimLength = 0.8f; // how long the strike animation actually takes
     [SerializeField] float groundPoundAnimLength = 0.8f;
 
     [Header("Attack Timers")]
     float strikeTimer = 0.5f;
-    float spinTimer = 5f;
-    float groundPoundTimer = 10f;
-    float ultimateTimer = 0f;
+   public float spinTimer = 3f;
+   public float groundPoundTimer = 8f;
+   public float ultimateTimer = 0f;
 
     [Header("Health")]
     public int playerHealth;

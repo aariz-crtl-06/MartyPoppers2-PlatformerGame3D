@@ -11,6 +11,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/IntroCutscene.unity
     guid: 870a447ae3616da459aca6e653220707
+  - enabled: 1
+    path: Assets/Scenes/BossFight.unity
+    guid: 731a7d2fd6bf735438a848d7f83fa1dc
+  - enabled: 1
+    path: Assets/Scenes/BossCutscene.unity
+    guid: 0fd1a5177f521e04dad43f38f367fddf
+  - enabled: 1
+    path: Assets/Scenes/FinalCutscene.unity
+    guid: 25a6e7eb066b9fd4ba34698588c99121
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

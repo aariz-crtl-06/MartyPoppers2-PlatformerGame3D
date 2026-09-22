@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-
+using UnityEngine.SceneManagement;
 public class BossAI : MonoBehaviour, IDamageable
 {
     enum BossState
@@ -30,6 +30,7 @@ public class BossAI : MonoBehaviour, IDamageable
     [SerializeField] LayerMask groundLayer;
     public AudioSource fistSound;
     public AudioSource bossLand;
+    public string nextSceneName = "FinalCutscene";
 
     [Header("Damage")]
     [SerializeField] LayerMask playerLayer;
@@ -559,8 +560,7 @@ public class BossAI : MonoBehaviour, IDamageable
         if (health <= 0)
         {
             CleanupMinions();
-            SpawnDust(bossDustPrefab, bossModel.transform.position);
-            Destroy(gameObject);
+            SceneManager.LoadScene(nextSceneName);
         }
     }
 

@@ -14,6 +14,7 @@ public class IntroScene : MonoBehaviour
     public Camera cam2;
     public GameObject buttons;
     public Animator animator;
+    public AudioSource floatSound;
 
     [Header("Settings")]
     public string gameplaySceneName = "GameplayScene";
@@ -24,7 +25,8 @@ public class IntroScene : MonoBehaviour
 
     void Start()
     {
-
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     void Update()
@@ -72,6 +74,7 @@ public class IntroScene : MonoBehaviour
 
         // float in place for 3 seconds, rising up off the couch, before the pull/shrink/rotate kicks in
         animator.SetBool("isFloating", true);
+        floatSound.PlayOneShot(floatSound.clip); // play the float sound effect
 
         float floatUpAmount = 2f; // how high marty rises, tweak to taste
         Vector3 martyFloatTarget = martyStartPos + Vector3.up * floatUpAmount;

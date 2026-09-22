@@ -126,8 +126,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff4e2944271da9c42adbdc8004564e70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovingPlatform
-  point1: {fileID: 7017991596773798525}
-  point2: {fileID: 4211257636599339691}
+  point1: {fileID: 3465324741290804388}
+  point2: {fileID: 1569886638459619949}
+  speedToPoint2: 5
+  speedToPoint1: 3
+  arriveDistance: 0.05
 --- !u!114 &6536270353322505130
 MonoBehaviour:
   m_ObjectHideFlags: 0

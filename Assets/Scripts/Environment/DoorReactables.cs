@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class DoorReactables : MonoBehaviour
 {
+    public AudioSource doorOpenSound;
+    public AudioSource keySound;
+    public AudioSource teleportSound;
 
     [Header("Keys")]
     public GameObject redKey;
@@ -9,15 +12,19 @@ public class DoorReactables : MonoBehaviour
     public GameObject yellowKey;
     public Transform hubSpawn;
 
-    //[Header("Doors")]
-    //public GameObject redDoor;
-    //public GameObject blueDoor;
-    //public GameObject yellowDoor;
+    [Header("UI")]
+    public GameObject redUI;
+    public GameObject blueUI;
+    public GameObject yellowUI;
 
     [Header("Checks")]
     public bool hasRedKey;
     public bool hasBlueKey;
     public bool hasYellowKey;
+
+    [Header("Portals")]
+    public GameObject bluePortal;
+    public GameObject yellowPortal;
 
     private CharacterController controller;
 
@@ -45,39 +52,60 @@ public class DoorReactables : MonoBehaviour
         if (other.CompareTag("redKey"))
         {
             hasRedKey = true;
+            keySound.PlayOneShot(keySound.clip);
             redKey.SetActive(false);
+            redUI.SetActive(true);
         }
 
         if (other.CompareTag("blueKey"))
         {
             hasBlueKey = true;
+            keySound.PlayOneShot(keySound.clip);
             blueKey.SetActive(false);
-            TeleportToHub();
+            bluePortal.SetActive(true);
+            blueUI.SetActive(true);
         }
 
         if (other.CompareTag("yellowKey"))
         {
             hasYellowKey = true;
+            keySound.PlayOneShot(keySound.clip);
             yellowKey.SetActive(false);
+            yellowPortal.SetActive(true);
+            yellowUI.SetActive(true);
+        }
+
+        if (other.CompareTag("bluePortal"))
+        {
             TeleportToHub();
+            teleportSound.PlayOneShot(teleportSound.clip);
+        }
+
+        if (other.CompareTag("yellowPortal"))
+        {
+            TeleportToHub();
+            teleportSound.PlayOneShot(teleportSound.clip);
         }
 
         if (other.CompareTag("redDoor") && hasRedKey)
         {
             other.GetComponent<DoorFadeOut>().Open();
-            Debug.Log("Red door opened!");
+            doorOpenSound.PlayOneShot(doorOpenSound.clip);
+            redUI.SetActive(false);
         }
 
         if (other.CompareTag("blueDoor") && hasBlueKey)
         {
             other.GetComponent<DoorFadeOut>().Open();
-            Debug.Log("Blue door opened!");
+            doorOpenSound.PlayOneShot(doorOpenSound.clip);
+            blueUI.SetActive(false);
         }
 
         if (other.CompareTag("yellowDoor") && hasYellowKey)
         {
             other.GetComponent<DoorFadeOut>().Open();
-            Debug.Log("Yellow door opened!");
+            doorOpenSound.PlayOneShot(doorOpenSound.clip);
+            yellowUI.SetActive(false);
         }
     }
 }

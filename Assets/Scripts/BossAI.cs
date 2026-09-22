@@ -28,6 +28,8 @@ public class BossAI : MonoBehaviour, IDamageable
     [SerializeField] float bossSwapDuration = 0.35f;
     [SerializeField] float dustLifetime = 3f;
     [SerializeField] LayerMask groundLayer;
+    public AudioSource fistSound;
+    public AudioSource bossLand;
 
     [Header("Damage")]
     [SerializeField] LayerMask playerLayer;
@@ -41,7 +43,10 @@ public class BossAI : MonoBehaviour, IDamageable
     [SerializeField] float timeBetweenAttacks = 2f;
 
     [Header("Boss Health")]
-    [SerializeField] int health = 5;
+    [SerializeField] int health = 15;
+    int maxHealth;
+    public int Health => health;
+    public int MaxHealth => maxHealth;
 
     [Header("Attack 1 - Tracking Fist")]
     [SerializeField] float trackDuration = 5f;
@@ -102,6 +107,23 @@ public class BossAI : MonoBehaviour, IDamageable
     float stunDuration;
     Vector3 giantFullScale = Vector3.one;
     Vector3 bossFullScale = Vector3.one;
+
+    [Header("Damage Flash")]
+    [SerializeField] Color flashColor = Color.red;
+    [SerializeField] float flashDuration = 0.3f;
+
+    class FlashPiece
+    {
+        public Renderer renderer;
+        public int materialIndex;
+        public int colorId;
+        public Color original;
+    }
+
+    List<FlashPiece> flashPieces = new List<FlashPiece>();
+    MaterialPropertyBlock block;
+    float flashTimer = 0f;
+    public AudioSource hitSound;
 
     // ---------------- attack flow ----------------
 
@@ -181,8 +203,11 @@ public class BossAI : MonoBehaviour, IDamageable
         giantFist.transform.position = Vector3.MoveTowards(
             giantFist.transform.position, slamTarget, slamSpeed * Time.deltaTime);
 
+        
+
         if (giantFist.transform.position == slamTarget)
         {
+            fistSound.PlayOneShot(fistSound.clip);
             DamageAtPoint(slamTarget, fistImpactRadius, fistDamage);
             phaseTimer = 0f;
             state = BossState.FistEmbedded;
@@ -488,6 +513,7 @@ public class BossAI : MonoBehaviour, IDamageable
             if (marker != null) marker.SetActive(false);
 
             PlayAnim("JumpLand");
+            bossLand.PlayOneShot(bossLand.clip);
             phaseTimer = 0f;
             state = BossState.BossLanding;
         }
@@ -526,6 +552,8 @@ public class BossAI : MonoBehaviour, IDamageable
     {
         if (state != BossState.BossStunned) return;   // armoured every other phase
 
+        flashTimer = flashDuration;
+        hitSound.PlayOneShot(hitSound.clip);
         health -= damageTaken;
 
         if (health <= 0)
@@ -533,6 +561,29 @@ public class BossAI : MonoBehaviour, IDamageable
             CleanupMinions();
             SpawnDust(bossDustPrefab, bossModel.transform.position);
             Destroy(gameObject);
+        }
+    }
+
+    void UpdateFlash()
+    {
+        if (flashTimer <= 0f) return;
+
+        flashTimer -= Time.deltaTime;
+        float t = Mathf.Clamp01(flashTimer / flashDuration);
+
+        foreach (FlashPiece p in flashPieces)
+        {
+            if (p.renderer == null) continue;
+
+            if (t > 0f)
+            {
+                block.SetColor(p.colorId, Color.Lerp(p.original, flashColor, t));
+                p.renderer.SetPropertyBlock(block, p.materialIndex);
+            }
+            else
+            {
+                p.renderer.SetPropertyBlock(null, p.materialIndex);
+            }
         }
     }
 
@@ -592,6 +643,8 @@ public class BossAI : MonoBehaviour, IDamageable
 
     void Start()
     {
+        maxHealth = health;   // remember the starting value so the bar knows what "full" is
+
         if (marker != null)
         {
             markerRenderer = marker.GetComponent<Renderer>();
@@ -607,6 +660,40 @@ public class BossAI : MonoBehaviour, IDamageable
             giantModel.SetActive(true);
         }
 
+        block = new MaterialPropertyBlock();
+
+        if (bossModel != null)
+        {
+            // true = include inactive, because bossModel starts hidden
+            foreach (Renderer r in bossModel.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] mats = r.sharedMaterials;
+
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    Material m = mats[i];
+                    if (m == null) continue;
+
+                    // Skip Quick Outline's mask and fill materials
+                    if (m.shader.name.IndexOf("outline", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                        continue;
+
+                    int id;
+                    if (m.HasProperty("_BaseColor")) id = Shader.PropertyToID("_BaseColor");
+                    else if (m.HasProperty("_Color")) id = Shader.PropertyToID("_Color");
+                    else continue;
+
+                    flashPieces.Add(new FlashPiece
+                    {
+                        renderer = r,
+                        materialIndex = i,
+                        colorId = id,
+                        original = m.GetColor(id)
+                    });
+                }
+            }
+        }
+
         if (bossModel != null)
         {
             bossFullScale = bossModel.transform.localScale;
@@ -618,6 +705,7 @@ public class BossAI : MonoBehaviour, IDamageable
 
     void Update()
     {
+        UpdateFlash();
         switch (state)
         {
             case BossState.Idle: Idle(); break;

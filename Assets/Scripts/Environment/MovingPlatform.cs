@@ -1,57 +1,41 @@
 using UnityEngine;
 
+[DefaultExecutionOrder(-100)] // runs before the player's scripts each frame
 public class MovingPlatform : MonoBehaviour
 {
     [Header("References")]
-    public GameObject point1;
-    public GameObject point2;
-
-    [Header("Checks")]
-    bool atPoint1;
-    bool atPoint2;
+    public Transform point1;
+    public Transform point2;
 
     [Header("Platform Settings")]
-    Vector3 movingPlat = new Vector3 (0, 0, 0);
+    public float speedToPoint2 = 5f;
+    public float speedToPoint1 = 3f;
+    public float arriveDistance = 0.05f;
+
     public Vector3 DeltaMovement { get; private set; }
+
+    bool movingToPoint2 = true;
 
     void Start()
     {
-        movingPlat = point1.transform.position;
-        movingPlat = transform.position;
-        atPoint1 = true;
+        transform.position = point1.position;
     }
 
     void Update()
     {
         Vector3 previousPosition = transform.position;
-        transform.position = movingPlat;
+
+        Transform target = movingToPoint2 ? point2 : point1;
+        float speed = movingToPoint2 ? speedToPoint2 : speedToPoint1;
+
+        transform.position = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
+
+        // Measured AFTER moving, so it matches this frame's movement
         DeltaMovement = transform.position - previousPosition;
 
-        transform.position = movingPlat;
-        
-
-        if (atPoint1)
+        if (Vector3.Distance(transform.position, target.position) < arriveDistance)
         {
-            movingPlat = Vector3.MoveTowards(movingPlat, point2.transform.position, 5f * Time.deltaTime);
-
-            if (Vector3.Distance(movingPlat, point2.transform.position) < 0.05f) //Check to see if reached destination
-            {
-                atPoint2 = true;
-                atPoint1 = false;
-            }
+            movingToPoint2 = !movingToPoint2;
         }
-
-        if (atPoint2)
-        {
-            movingPlat = Vector3.MoveTowards(movingPlat, point1.transform.position, 3f * Time.deltaTime);
-
-            if (Vector3.Distance(movingPlat, point1.transform.position) < 0.05f) //Check to see if reached destination
-            {
-                atPoint1 = true;
-                atPoint2 = false;
-            }
-        }
-
-        
     }
 }

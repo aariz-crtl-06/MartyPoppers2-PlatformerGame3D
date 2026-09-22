@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         MovingPlatform platform = hit.collider.GetComponent<MovingPlatform>();
-        if (platform != null)
+        if (platform != null && hit.normal.y > 0.5f) // only when touching its top surface
         {
             currentPlatform = platform;
         }
@@ -64,7 +64,8 @@ public class PlayerController : MonoBehaviour
         currentPlatform = null; // OnControllerColliderHit will re-set this during move
 
         // Move the player
-        controller.Move((move * Time.deltaTime) + platformDelta); //to ensure player can land on platform
+        controller.Move(platformDelta);          // 1) ride the platform first
+        controller.Move(move * Time.deltaTime);  // 2) then your normal movement + gravity
     }
 
     private void Turn()

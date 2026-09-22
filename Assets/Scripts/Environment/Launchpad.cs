@@ -9,6 +9,7 @@ public class Launchpad : MonoBehaviour
 
     [Header("References")]
     [SerializeField] Animator padAnimator;   // drag BouncePad here in the Inspector
+    public AudioSource launchSound;
 
     PlayerController playerControl;
     CharacterController charController;
@@ -32,7 +33,11 @@ public class Launchpad : MonoBehaviour
             // only play the launch anim if they're actually leaving the ground
             if (charController == null || charController.isGrounded)
             {
-                if (padAnimator != null) padAnimator.SetTrigger(launchTriggerName);
+                if (padAnimator != null)
+                {
+                    padAnimator.SetTrigger(launchTriggerName);
+                    launchSound.PlayOneShot(launchSound.clip);
+                }
             }
         }
     }

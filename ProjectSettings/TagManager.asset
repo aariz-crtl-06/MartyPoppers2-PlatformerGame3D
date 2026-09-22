@@ -10,6 +10,8 @@ TagManager:
   - redDoor
   - blueDoor
   - yellowDoor
+  - bluePortal
+  - yellowPortal
   layers:
   - Default
   - TransparentFX
@@ -19,7 +21,7 @@ TagManager:
   - UI
   - TheEnemies
   - Ground
-  - 
+  - Post Processing
   - 
   - 
   - 

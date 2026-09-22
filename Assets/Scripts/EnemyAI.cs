@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using System.Collections.Generic;
 public class EnemyAI : MonoBehaviour, IDamageable
 {
     [Header("References")]
@@ -10,6 +11,8 @@ public class EnemyAI : MonoBehaviour, IDamageable
     BossAI spawner;
     Animator animator;
     [SerializeField] GameObject dustPrefab;
+    public AudioSource hitSound;
+    public AudioSource deathSound;
 
     [Header("Enemy Settings")]
     [SerializeField] float chaseRange = 10f;
@@ -33,6 +36,22 @@ public class EnemyAI : MonoBehaviour, IDamageable
     bool isChasing = false;
     bool isAttacking = false;
     bool isRetreating = false;
+
+    [Header("Damage Flash")]
+    [SerializeField] Color flashColor = Color.red;
+    [SerializeField] float flashDuration = 0.3f;
+
+    class FlashPiece
+    {
+        public Renderer renderer;
+        public int materialIndex;
+        public int colorId;
+        public Color original;
+    }
+
+    List<FlashPiece> flashPieces = new List<FlashPiece>();
+    MaterialPropertyBlock block;
+    float flashTimer = 0f;
     private void Patrol()
     {
         
@@ -116,7 +135,9 @@ public class EnemyAI : MonoBehaviour, IDamageable
     public void TakeDamage(int damageTaken)
     {
         if (isDead) return;          // guard: a second hit must not re-trigger death
+        flashTimer = flashDuration;
 
+        hitSound.PlayOneShot(hitSound.clip);
         health -= damageTaken;
 
         if (health <= 0)
@@ -136,6 +157,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
 
     private IEnumerator DeathSequence()
     {
+        deathSound.PlayOneShot(deathSound.clip);
         // Hand control of the transform back to us
         if (agent != null && agent.enabled)
         {
@@ -169,25 +191,84 @@ public class EnemyAI : MonoBehaviour, IDamageable
             yield return null;
         }
 
+        yield return new WaitForSeconds(0.5f);
+
+
         Destroy(gameObject);
     }
 
     private void SpawnDust(GameObject prefab, Vector3 position)
     {
         if (prefab == null) return;
-
         GameObject dust = Instantiate(prefab, position, Quaternion.identity);
         Destroy(dust, dustLifetime);
     }
+
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         playerCombat = playerTarget.GetComponent<PlayerCombat>();
         animator = GetComponentInChildren<Animator>();
+
+        block = new MaterialPropertyBlock();
+
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+        {
+            Material[] mats = r.sharedMaterials;
+
+            for (int i = 0; i < mats.Length; i++)
+            {
+                Material m = mats[i];
+                if (m == null) continue;
+
+                // Skip Quick Outline's mask and fill materials
+                if (m.shader.name.IndexOf("outline", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    continue;
+
+                int id;
+                if (m.HasProperty("_BaseColor")) id = Shader.PropertyToID("_BaseColor");
+                else if (m.HasProperty("_Color")) id = Shader.PropertyToID("_Color");
+                else continue;
+
+                flashPieces.Add(new FlashPiece
+                {
+                    renderer = r,
+                    materialIndex = i,
+                    colorId = id,
+                    original = m.GetColor(id)
+                });
+            }
+        }
+    }
+
+    void UpdateFlash()
+    {
+        if (flashTimer <= 0f) return;
+
+        flashTimer -= Time.deltaTime;
+        float t = Mathf.Clamp01(flashTimer / flashDuration);
+
+        foreach (FlashPiece p in flashPieces)
+        {
+            if (p.renderer == null) continue;
+
+            if (t > 0f)
+            {
+                block.SetColor(p.colorId, Color.Lerp(p.original, flashColor, t));
+                p.renderer.SetPropertyBlock(block, p.materialIndex);
+            }
+            else
+            {
+                // Flash is over: remove the override so the material looks normal again
+                p.renderer.SetPropertyBlock(null, p.materialIndex);
+            }
+        }
     }
     void Update()
     {
+        UpdateFlash();
+
         if (isDead) return;
 
         if (isChasing)

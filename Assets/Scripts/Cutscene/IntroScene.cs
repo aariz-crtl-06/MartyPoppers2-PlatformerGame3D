@@ -15,6 +15,8 @@ public class IntroScene : MonoBehaviour
     public GameObject buttons;
     public Animator animator;
     public AudioSource floatSound;
+    public GameObject creditsPanel;
+    public GameObject quitPanel;
 
     [Header("Settings")]
     public string gameplaySceneName = "GameplayScene";
@@ -38,6 +40,37 @@ public class IntroScene : MonoBehaviour
     {
         StartCoroutine(IntroSceneSequence());
         buttons.SetActive(false); // hide buttons during cutscene
+    }
+
+    public void ShowCredits()
+    {
+        creditsPanel.SetActive(true);
+    }
+
+    public void HideCredits()
+    {
+        creditsPanel.SetActive(false);
+    }
+
+    public void QuitPanel()
+    {
+        quitPanel.SetActive(true);
+    }
+    
+    public void HideQuitPanel()
+    {
+        quitPanel.SetActive(false);
+    }
+
+    public void QuitGame()
+    {
+        Time.timeScale = 1f;
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     private IEnumerator IntroSceneSequence()
